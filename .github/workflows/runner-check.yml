@@ -34,4 +34,3 @@ jobs:
 
           echo "===== Available disk after checkout ====="
           du -sh "$GITHUB_WORKSPACE" || true
-```
