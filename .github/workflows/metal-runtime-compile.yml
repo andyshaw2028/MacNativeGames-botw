@@ -1,0 +1,30 @@
+name: Metal runtime compile smoke test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "test/metal-runtime-compile"
+    paths:
+      - ".github/workflows/metal-runtime-compile.yml"
+      - "tests/metal-runtime/**"
+
+permissions:
+  contents: read
+
+jobs:
+  metal-runtime-compile:
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+          swift --version
+
+      - name: Compile MSL at runtime and create a render pipeline
+        run: swift tests/metal-runtime/MetalRuntimeCompile.swift
