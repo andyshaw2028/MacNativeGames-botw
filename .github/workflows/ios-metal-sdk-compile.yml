@@ -1,0 +1,36 @@
+name: iOS Metal SDK compile + runtime smoke test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "test/ios-metal-sdk-compile"
+    paths:
+      - ".github/workflows/ios-metal-sdk-compile.yml"
+      - "tests/metal-runtime/**"
+
+permissions:
+  contents: read
+
+jobs:
+  ios-sdk-compile:
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Show Apple toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+          swift --version
+
+      - name: Type-check Metal code against the iOS SDK
+        run: |
+          SDK="$(xcrun --sdk iphoneos --show-sdk-path)"
+          swiftc -typecheck -sdk "$SDK" -target arm64-apple-ios17.0 tests/metal-runtime/MetalRuntimeCompile.swift
+
+      - name: Run runtime MSL compile smoke test on macOS
+        run: swift tests/metal-runtime/MetalRuntimeCompile.swift
