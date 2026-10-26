@@ -1,0 +1,63 @@
+name: BOTW macOS Build Preflight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: macos-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Inspect macOS and workspace
+        run: |
+          set -eu
+          sw_vers
+          uname -m
+          df -h "$GITHUB_WORKSPACE"
+          du -sh "$GITHUB_WORKSPACE"
+          find . -maxdepth 3 \
+            \( -name 'build_app.py' \
+            -o -name 'requirements.txt' \
+            -o -name 'pyproject.toml' \
+            -o -name 'setup.py' \
+            -o -name 'environment.yml' \) \
+            -print
+
+      - name: Inspect Python versions
+        run: |
+          set -eu
+          for p in python3.14 python3.13 python3.12 python3.11 python3; do
+            if command -v "$p" >/dev/null 2>&1; then
+              "$p" --version
+              "$p" -c 'import sys, platform; print(sys.executable); print(platform.machine())'
+            fi
+          done
+
+      - name: Inspect build entry point
+        run: |
+          set -eu
+          if [ ! -f build_app.py ]; then
+            echo "ERROR: build_app.py not found at repository root"
+            exit 1
+          fi
+          sed -n '1,220p' build_app.py
+
+      - name: Inspect dependency declarations
+        run: |
+          set -eu
+          for f in requirements.txt pyproject.toml setup.py; do
+            if [ -f "$f" ]; then
+              echo "===== $f ====="
+              sed -n '1,200p' "$f"
+            fi
+          done
+
+      - name: Check Git worktree
+        run: git status --short
