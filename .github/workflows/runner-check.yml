@@ -1,0 +1,38 @@
+```yaml
+name: macOS Runner Check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: macos-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check runner environment
+        run: |
+          echo "===== macOS ====="
+          sw_vers
+
+          echo "===== CPU ====="
+          sysctl -n machdep.cpu.brand_string || true
+
+          echo "===== Memory ====="
+          memory_pressure || true
+
+          echo "===== Disk space ====="
+          df -h /
+
+          echo "===== Workspace disk ====="
+          df -h "$GITHUB_WORKSPACE"
+
+          echo "===== Python ====="
+          python3 --version
+
+          echo "===== Available disk after checkout ====="
+          du -sh "$GITHUB_WORKSPACE" || true
+```
